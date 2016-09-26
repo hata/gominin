@@ -3,6 +3,7 @@ package gominin
 import (
 	"io"
 	"math"
+    "strings"
 )
 
 const (
@@ -24,6 +25,7 @@ type Document interface {
 
 type DocumentStore interface {
 	AddDoc(in io.Reader, attrs map[string]string) Document
+    AddDocString(s string, attrs map[string]string) Document
 	GetDoc(id DocID) Document
 	DecodeDocID(pos GlobalPosition) DocID
 }
@@ -85,6 +87,10 @@ func (ds *memoryDocumentStore) AddDoc(in io.Reader, attrs map[string]string) Doc
 	return doc
 }
 
+func (ds *memoryDocumentStore) AddDocString(s string, attrs map[string]string) Document {
+    return ds.AddDoc(strings.NewReader(s), attrs)
+}
+
 func (ds *memoryDocumentStore) GetDoc(id DocID) Document {
 	for _, doc := range ds.docInfos {
 		if doc.id == id {
@@ -102,7 +108,6 @@ func (ds *memoryDocumentStore) DecodeDocID(pos GlobalPosition) DocID {
 		return InvalidDocID
 	}
 
-	// TODO: Terminator should be insert to avoid this case.
 	if foundIndex == ds.docInfos.Len() { // The last document found.
 		return ds.docInfos[foundIndex-1].id
 	}
