@@ -42,6 +42,17 @@ func TestAddDoc(t *testing.T) {
 	}
 }
 
+func TestAddDocString(t *testing.T) {
+	ms := newMemoryDocumentStore()
+	doc := ms.AddDocString("foo", map[string]string{})
+	if doc.GetID() == 0 {
+		t.Error("Doc should be created by AddDoc.")
+	}
+	if string(doc.GetBytes()) != "foo" {
+		t.Error("stored document is not retrieved.")
+	}
+}
+
 func TestGetDoc(t *testing.T) {
 	ms := newMemoryDocumentStore()
 	doc := ms.AddDoc(strings.NewReader("foo"), map[string]string{})

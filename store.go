@@ -3,7 +3,7 @@ package gominin
 import (
 	"io"
 	"math"
-    "strings"
+	"strings"
 )
 
 const (
@@ -25,7 +25,7 @@ type Document interface {
 
 type DocumentStore interface {
 	AddDoc(in io.Reader, attrs map[string]string) Document
-    AddDocString(s string, attrs map[string]string) Document
+	AddDocString(s string, attrs map[string]string) Document
 	GetDoc(id DocID) Document
 	DecodeDocID(pos GlobalPosition) DocID
 }
@@ -88,7 +88,7 @@ func (ds *memoryDocumentStore) AddDoc(in io.Reader, attrs map[string]string) Doc
 }
 
 func (ds *memoryDocumentStore) AddDocString(s string, attrs map[string]string) Document {
-    return ds.AddDoc(strings.NewReader(s), attrs)
+	return ds.AddDoc(strings.NewReader(s), attrs)
 }
 
 func (ds *memoryDocumentStore) GetDoc(id DocID) Document {

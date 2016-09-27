@@ -29,7 +29,7 @@ type globalPositions []GlobalPosition
 func newSearchIndex() (si *searchIndex) {
 	si = new(searchIndex)
 	si.store = NewMemoryDocumentStore()
-	si.tokenizer = NewSimpleTokenizer()
+	si.tokenizer = NewCharTokenizer()
 	si.termTable = NewTermTable()
 	si.term2positions = make(map[TermID]globalPositions)
 	return
@@ -116,9 +116,9 @@ func (si *searchIndex) parse(textBytes []byte, modify bool) (parsed termIDPositi
 	si.tokenizer.Init(textBytes)
 	token, err := si.tokenizer.Next()
 	for err == nil {
-		id := si.termTable.GetID(token.Text, modify)
+		id := si.termTable.GetID(token.Text(), modify)
 		if id != NotFound {
-			tp := newTermIDPosition(id, LocalPosition(token.Offset))
+			tp := newTermIDPosition(id, LocalPosition(token.Offset()))
 			parsed = append(parsed, tp)
 		} else {
 			return nil, errors.New("NotFound")

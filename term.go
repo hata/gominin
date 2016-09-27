@@ -1,9 +1,11 @@
 package gominin
 
+import "math"
+
 type TermID uint64
 
 const (
-	NotFound             = 0
+	NotFound             = TermID(math.MaxUint64)
 	firstID              = 1
 	initialTermTableSize = 100
 )

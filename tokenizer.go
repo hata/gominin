@@ -2,35 +2,41 @@ package gominin
 
 import "io"
 
-type Token struct {
-	Text   string
-	Offset int
+type Token interface {
+	Text() string
+	Offset() int
 }
 
 type Tokenizer interface {
 	Init(textBytes []byte)
-	Next() (*Token, error)
+	Next() (Token, error)
+}
+
+type simpleToken struct {
+	text   string
+	offset int
 }
 
 type simpleTokenizer struct {
 	textBytes []byte
 	pos       int
+	charPos   int
 	length    int
 }
 
-func NewSimpleTokenizer() (tokenizer Tokenizer) {
-	tokenizer = newSimpleTokenizer()
+func NewCharTokenizer() (tokenizer Tokenizer) {
+	tokenizer = newCharTokenizer()
 	return
 }
 
-func newToken(text string, pos int) (t *Token) {
-	t = new(Token)
-	t.Text = text
-	t.Offset = pos
-	return
+func newToken(text string, pos int) Token {
+	t := new(simpleToken)
+	t.text = text
+	t.offset = pos
+	return t
 }
 
-func newSimpleTokenizer() (tokenizer *simpleTokenizer) {
+func newCharTokenizer() (tokenizer *simpleTokenizer) {
 	tokenizer = new(simpleTokenizer)
 	return
 }
@@ -38,11 +44,13 @@ func newSimpleTokenizer() (tokenizer *simpleTokenizer) {
 func (tokenizer *simpleTokenizer) Init(textBytes []byte) {
 	tokenizer.textBytes = textBytes
 	tokenizer.pos = 0
+	tokenizer.charPos = 0
 	tokenizer.length = len(textBytes)
 }
 
-func (tokenizer *simpleTokenizer) Next() (t *Token, err error) {
+func (tokenizer *simpleTokenizer) Next() (t Token, err error) {
 	var lastPos int
+	tokenCharPos := tokenizer.charPos
 	startPos := tokenizer.pos
 
 	if startPos >= tokenizer.length {
@@ -55,6 +63,15 @@ func (tokenizer *simpleTokenizer) Next() (t *Token, err error) {
 		}
 	}
 	tokenizer.pos = lastPos
+	tokenizer.charPos++
 
-	return newToken(string(tokenizer.textBytes[startPos:lastPos]), startPos), nil
+	return newToken(string(tokenizer.textBytes[startPos:lastPos]), tokenCharPos), nil
+}
+
+func (t *simpleToken) Text() string {
+	return t.text
+}
+
+func (t *simpleToken) Offset() int {
+	return t.offset
 }
