@@ -1,0 +1,8 @@
+// 既定の設定とユーザー設定を上書きするには、このファイル内に設定を挿入します
+{
+        // Specifies the GOPATH to use when no environment variable is set.
+    "go.gopath": "/Users/hata/golang/go-local",
+
+    // Specifies the GOROOT to use when no environment variable is set.
+    "go.goroot": "/usr/local/Cellar/go/1.7.1/libexec",
+}

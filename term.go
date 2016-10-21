@@ -14,13 +14,13 @@ type TermTable interface {
 	GetID(str string, modify bool) TermID
 }
 
-func NewTermTable() TermTable {
-	return newTermTable()
+type termTable struct {
+    nextID TermID
+    terms  map[string]TermID
 }
 
-type termTable struct {
-	nextID TermID
-	terms  map[string]TermID
+func NewTermTable() TermTable {
+	return newTermTable()
 }
 
 func newTermTable() (tt *termTable) {
