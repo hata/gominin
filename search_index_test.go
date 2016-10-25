@@ -54,3 +54,31 @@ func TestSearchNotFound(t *testing.T) {
 		t.Error("Not found should be return.")
 	}
 }
+
+func TestSearchIndexUnicode(t *testing.T) {
+	si := newSearchIndex()
+	doc, _ := si.Add(strings.NewReader("foo\u3042\bar"))
+	if doc == nil {
+		t.Error("Add Reader failed.")
+	}
+
+	docIDs, err := si.Search("\u3042")
+
+	if len(docIDs) != 1 {
+		t.Error("Found document is not correct.", docIDs, err)
+	}
+}
+
+func TestSearchIndexUnicodeNotFound(t *testing.T) {
+	si := newSearchIndex()
+	doc, _ := si.Add(strings.NewReader("foo\u3042\bar"))
+	if doc == nil {
+		t.Error("Add Reader failed.")
+	}
+
+	docIDs, err := si.Search("\u3043")
+
+	if len(docIDs) != 0 {
+		t.Error("Found document is not correct.", docIDs, err)
+	}
+}

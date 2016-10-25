@@ -14,6 +14,7 @@ const (
 type DocID uint64
 type GlobalPosition uint64
 type LocalPosition int
+type GlobalPositions []GlobalPosition
 
 type Document interface {
 	GetID() DocID

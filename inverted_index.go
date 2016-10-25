@@ -2,7 +2,7 @@ package gominin
 
 // InvertedIndex is the interface of inverted index data structure.
 type InvertedIndex interface {
-	FetchPositions(id TermID) []GlobalPosition
+	FetchPositions(id TermID) GlobalPositions
 	AppendPosition(id TermID, globalPos GlobalPosition) error
 }
 
@@ -13,23 +13,23 @@ func NewMemoryInvertedIndex() InvertedIndex {
 }
 
 type memoryInvertedIndex struct {
-	term2positions map[TermID]globalPositions
+	term2positions map[TermID]GlobalPositions
 }
 
 func newMemoryInvertedIndex() (ii *memoryInvertedIndex) {
 	ii = new(memoryInvertedIndex)
-	ii.term2positions = make(map[TermID]globalPositions)
+	ii.term2positions = make(map[TermID]GlobalPositions)
 	return
 }
 
-func (ii *memoryInvertedIndex) FetchPositions(id TermID) []GlobalPosition {
+func (ii *memoryInvertedIndex) FetchPositions(id TermID) GlobalPositions {
 	return ii.term2positions[id]
 }
 
 func (ii *memoryInvertedIndex) AppendPosition(id TermID, globalPos GlobalPosition) (err error) {
 	stored := ii.term2positions[id]
 	if stored == nil {
-		stored = make([]GlobalPosition, 0)
+		stored = make(GlobalPositions, 0)
 	}
 	ii.term2positions[id] = append(stored, globalPos)
 	return

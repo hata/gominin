@@ -15,30 +15,31 @@ type searchIndex struct {
 	store          DocumentStore
 	tokenizer      Tokenizer
 	termTable      TermTable
-	term2positions map[TermID]globalPositions
+	term2positions InvertedIndex
 }
 
 type termIDPosition struct {
-	id  TermID
-	pos LocalPosition
+	id   TermID
+	pos  LocalPosition
+	size int
 }
 
 type termIDPositions []*termIDPosition
-type globalPositions []GlobalPosition
 
 func newSearchIndex() (si *searchIndex) {
 	si = new(searchIndex)
 	si.store = NewMemoryDocumentStore()
 	si.tokenizer = NewCharTokenizer()
 	si.termTable = NewTermTable()
-	si.term2positions = make(map[TermID]globalPositions)
+	si.term2positions = NewMemoryInvertedIndex()
 	return
 }
 
-func newTermIDPosition(id TermID, pos LocalPosition) (tp *termIDPosition) {
+func newTermIDPosition(id TermID, pos LocalPosition, size int) (tp *termIDPosition) {
 	tp = new(termIDPosition)
 	tp.id = id
 	tp.pos = pos
+	tp.size = size
 	return
 }
 
@@ -52,18 +53,14 @@ func (si *searchIndex) Add(in io.Reader) (Document, error) {
 	sort.Sort(parsed)
 
 	for _, parsedPos := range parsed {
-		stored := si.term2positions[parsedPos.id]
-		if stored == nil {
-			stored = make(globalPositions, 0)
-		}
-		si.term2positions[parsedPos.id] = append(stored, doc.GetGlobalPosition(parsedPos.pos))
+		si.term2positions.AppendPosition(parsedPos.id, doc.GetGlobalPosition(parsedPos.pos))
 	}
 
 	return doc, nil
 }
 
 func (si *searchIndex) Search(query string) ([]DocID, error) {
-	var positions globalPositions
+	var positions GlobalPositions
 
 	parsed, err := si.parse([]byte(query), false)
 	if err != nil {
@@ -84,19 +81,22 @@ func (si *searchIndex) Search(query string) ([]DocID, error) {
 	return si.decodeDoc(positions), nil
 }
 
-func (si *searchIndex) intersect(termIDPos *termIDPosition, candPositions globalPositions) globalPositions {
-	positions := si.term2positions[termIDPos.id]
-	nextPositions := make(globalPositions, 0)
+// termIDPos is query terms.
+// e.g. [0, 1, 2, 5, ...]
+// candPositions are candidates from term2positions.
+// The positions are first searched term location.
+// Then we check relative positions for each terms.
+func (si *searchIndex) intersect(termIDPos *termIDPosition, candPositions GlobalPositions) GlobalPositions {
+	positions := si.term2positions.FetchPositions(termIDPos.id)
+	nextPositions := make(GlobalPositions, 0)
 
 	if candPositions == nil {
-		candPositions = make(globalPositions, len(positions))
+		candPositions = make(GlobalPositions, len(positions))
 		copy(candPositions, positions)
 		for i := range candPositions {
 			candPositions[i] -= GlobalPosition(termIDPos.pos)
 		}
 	}
-
-	// fmt.Println("intersect. candPositions.", candPositions)
 
 	for _, candPos := range candPositions {
 		foundIndex := BinarySearch(positions,
@@ -118,7 +118,7 @@ func (si *searchIndex) parse(textBytes []byte, modify bool) (parsed termIDPositi
 	for err == nil {
 		id := si.termTable.GetID(token.Text(), modify)
 		if id != NotFound {
-			tp := newTermIDPosition(id, LocalPosition(token.Offset()))
+			tp := newTermIDPosition(id, LocalPosition(token.Offset()), len(token.Text()))
 			parsed = append(parsed, tp)
 		} else {
 			return nil, errors.New("NotFound")
@@ -129,9 +129,11 @@ func (si *searchIndex) parse(textBytes []byte, modify bool) (parsed termIDPositi
 	return parsed, nil
 }
 
-func (si *searchIndex) decodeDoc(positions globalPositions) []DocID {
+func (si *searchIndex) decodeDoc(positions GlobalPositions) []DocID {
 	var curID, prevID DocID
-	docIDs := make([]DocID, 0)
+	var docIDs []DocID
+
+	docIDs = make([]DocID, 0)
 	prevID = InvalidDocID
 
 	// fmt.Println("decodeDoc positions", positions)
@@ -172,6 +174,6 @@ func (tps termIDPositions) Swap(i, j int) {
 
 // For BinarySearchList
 
-func (list globalPositions) Len() int {
+func (list GlobalPositions) Len() int {
 	return len(list)
 }
