@@ -68,11 +68,8 @@ func (si *searchIndex) Search(query string) ([]DocID, error) {
 	}
 
 	for _, termIDPos := range parsed {
-		// fmt.Println("Search. termIDPos:", termIDPos)
-		positions = si.intersect(termIDPos, positions)
+		positions = si.searchPositions(termIDPos, positions)
 	}
-
-	// fmt.Println("Search. positions. ", positions)
 
 	if len(positions) == 0 {
 		return nil, nil
@@ -86,7 +83,7 @@ func (si *searchIndex) Search(query string) ([]DocID, error) {
 // candPositions are candidates from term2positions.
 // The positions are first searched term location.
 // Then we check relative positions for each terms.
-func (si *searchIndex) intersect(termIDPos *termIDPosition, candPositions GlobalPositions) GlobalPositions {
+func (si *searchIndex) searchPositions(termIDPos *termIDPosition, candPositions GlobalPositions) GlobalPositions {
 	positions := si.term2positions.FetchPositions(termIDPos.id)
 	nextPositions := make(GlobalPositions, 0)
 
@@ -102,7 +99,6 @@ func (si *searchIndex) intersect(termIDPos *termIDPosition, candPositions Global
 		foundIndex := BinarySearch(positions,
 			func(index int) int { return int(positions[index] - (candPos + GlobalPosition(termIDPos.pos))) })
 		if foundIndex > -1 {
-			// fmt.Println("  intersect found term in termID, localPos globalPos ", termIDPos.id, termIDPos.pos, positions[foundIndex])
 			nextPositions = append(nextPositions, candPos)
 		}
 	}
