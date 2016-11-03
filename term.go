@@ -1,6 +1,10 @@
 package gominin
 
-import "math"
+import (
+    "fmt"
+    "io"
+    "math"
+)
 
 type TermID uint64
 
@@ -11,6 +15,7 @@ const (
 )
 
 type TermTable interface {
+    debugDump
 	GetID(str string, modify bool) TermID
 }
 
@@ -44,3 +49,8 @@ func (tt *termTable) GetID(str string, modify bool) TermID {
 		return NotFound
 	}
 }
+
+func (tt *termTable) dump(w io.Writer) {
+    fmt.Fprintln(w, tt.terms)
+}
+

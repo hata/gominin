@@ -1,7 +1,13 @@
 package gominin
 
+import (
+	"fmt"
+	"io"
+)
+
 // InvertedIndex is the interface of inverted index data structure.
 type InvertedIndex interface {
+	debugDump
 	FetchPositions(id TermID) GlobalPositions
 	AppendPosition(id TermID, globalPos GlobalPosition) error
 }
@@ -33,4 +39,10 @@ func (ii *memoryInvertedIndex) AppendPosition(id TermID, globalPos GlobalPositio
 	}
 	ii.term2positions[id] = append(stored, globalPos)
 	return
+}
+
+func (ii *memoryInvertedIndex) dump(w io.Writer) {
+    for k, v := range ii.term2positions {
+        fmt.Fprintln(w, k, v)
+    }
 }

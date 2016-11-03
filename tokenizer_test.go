@@ -49,6 +49,21 @@ func TestSomeNext(t *testing.T) {
 	}
 }
 
+func TestNextReturnCode(t *testing.T) {
+    tokenizer := newCharTokenizer()
+    tokenizer.Init([]byte("\n"))
+    token, err := tokenizer.Next()
+    var str string
+
+    for err != io.EOF {
+        str += token.Text()
+        token, err = tokenizer.Next()
+    }
+    if str != "\n" {
+        t.Error("Failed to return all tokens.")
+    }
+}
+
 func TestNextOffset(t *testing.T) {
 	tokenizer := newCharTokenizer()
 	tokenizer.Init([]byte("foo"))

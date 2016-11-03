@@ -7,8 +7,8 @@ import (
 )
 
 type SearchIndex interface {
-	Add(in io.Reader)
-	Search(query string)
+	Add(in io.Reader) (Document, error)
+	Search(query string) ([]DocID, error)
 }
 
 type searchIndex struct {
@@ -25,6 +25,10 @@ type termIDPosition struct {
 }
 
 type termIDPositions []*termIDPosition
+
+func NewSearchIndex() SearchIndex {
+	return newSearchIndex()
+}
 
 func newSearchIndex() (si *searchIndex) {
 	si = new(searchIndex)
@@ -72,6 +76,8 @@ func (si *searchIndex) Search(query string) ([]DocID, error) {
 	}
 
 	if len(positions) == 0 {
+		// si.termTable.dump(os.Stderr)
+		// si.term2positions.dump(os.Stderr)
 		return nil, nil
 	}
 
@@ -159,6 +165,9 @@ func (tps termIDPositions) Len() int {
 }
 
 func (tps termIDPositions) Less(i, j int) bool {
+	if tps[i].id == tps[j].id {
+		return tps[i].pos < tps[j].pos
+	}
 	return tps[i].id < tps[j].id
 }
 

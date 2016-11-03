@@ -82,3 +82,17 @@ func TestSearchIndexUnicodeNotFound(t *testing.T) {
 		t.Error("Found document is not correct.", docIDs, err)
 	}
 }
+
+func TestSearchIndexLongerText(t *testing.T) {
+    si := newSearchIndex()
+    doc, _ := si.Add(strings.NewReader("foo bar hoge\npackage and import\n"))
+    if doc == nil {
+        t.Error("Failed to add a document.")
+    }
+
+    docIDs, err := si.Search("package")
+    if len(docIDs) == 0 {
+        t.Error("Document should be found.", err)
+    }
+}
+

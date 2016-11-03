@@ -1,6 +1,7 @@
 package gominin
 
 import (
+    "bytes"
 	"strconv"
 	"testing"
 )
@@ -43,6 +44,14 @@ func TestGetIDForNotModify(t *testing.T) {
 	if id != NotFound {
 		t.Error("NotFound should be return when modify is false")
 	}
+}
+
+func TestDebugDump(t *testing.T) {
+    out := new(bytes.Buffer)
+    tt := newTermTable()
+    tt.GetID("a", true)
+    tt.GetID("b", true)
+    tt.dump(out)
 }
 
 func BenchmarkAddTerms(b *testing.B) {
